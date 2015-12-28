@@ -266,6 +266,7 @@ module Agents
       end
       log "Fetching #{url}"
       response = faraday.get(url)
+      log "Fetched #{url}"
       raise "Failed: #{response.inspect}" unless response.success?
 
       interpolation_context.stack {
@@ -298,20 +299,22 @@ module Agents
         end
 
         old_events = previous_payloads num_unique_lengths.first
-        num_unique_lengths.first.times do |index|
-          result = {}
-          interpolated['extract'].keys.each do |name|
-            result[name] = output[name][index]
-            if name.to_s == 'url'
-              result[name] = (response.env[:url] + result[name]).to_s
-            end
-          end
+        #num_unique_lengths.first.times do |index|
+        #  result = {}
+        #  interpolated['extract'].keys.each do |name|
+        #    result[name] = output[name][index]
+        #    if name.to_s == 'url'
+        #      result[name] = (response.env[:url] + result[name]).to_s
+        #    end
+        #  end
 
-          if store_payload!(old_events, result)
-            log "Storing new parsed result for '#{name}': #{result.inspect}"
-            create_event payload: payload.merge(result)
-          end
-        end
+        #  if store_payload!(old_events, result)
+        #    log "Storing new parsed result for '#{name}': #{result.inspect}"
+        #    create_event payload: payload.merge(result)
+        #  end
+        #end
+
+        create_event payload: payload.merge(output)
       }
     rescue => e
       error "Error when fetching url: #{e.message}\n#{e.backtrace.join("\n")}"
