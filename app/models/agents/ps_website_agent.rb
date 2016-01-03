@@ -2,7 +2,7 @@ require 'nokogiri'
 require 'date'
 
 module Agents
-  class PSWebsiteAgent < Agent
+  class PsWebsiteAgent < Agent
     include WebRequestConcern
 
     can_dry_run!
