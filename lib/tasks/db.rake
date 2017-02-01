@@ -16,7 +16,7 @@ namespace :db do
     Rake::Task["db:drop"].invoke
     Rake::Task["db:create"].invoke
     with_config do |app, host, db, user, password, port|
-      cmd = "pv -pte #{Rails.root}/db/dump/dump.sql | mysql -u #{user} --password=#{password} #{db}"
+      cmd = "pv -pte #{Rails.root}/db/dump/dump.sql | mysql -u #{user} --password=#{password} -h #{host} #{db}"
     end
     puts cmd
     exec cmd
