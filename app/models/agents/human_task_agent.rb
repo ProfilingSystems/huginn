@@ -294,7 +294,7 @@ module Agents
               log "Event emitted with answer(s) for poll", :outbound_event => event, :inbound_event => inbound_event
             else
               # handle normal completed HITs
-              payload = inbound_event.payload.dup.update('answers' => assignments.map(&:answers))
+              payload = { 'answers' => assignments.map(&:answers) }
 
               if take_majority?
                 counts = {}
@@ -403,27 +403,9 @@ module Agents
 
       def create_hit(opts = {})
         payload = opts['payload'] || {}
-
-         encoding_options = {
-             :invalid           => :replace,  # Replace invalid byte sequences
-             :undef             => :replace,  # Replace anything not defined in ASCII
-             :replace           => '',        # Use a blank for those replacements
-             :universal_newline => true       # Always break lines with \n
-         }
-
-         encoding = Encoding.find('ASCII')
-
-         payload[:copy].each {|s|
-           s.encode!(encoding, encoding_options)
-         }
-
         title = interpolate_string(opts['title'], payload).strip
         description = interpolate_string(opts['description'], payload).strip
         questions = interpolate_options(opts['questions'], payload)
-        log questions.inspect
-        log payload.inspect
-
-
         hit = RTurk::Hit.create(:title => title) do |hit|
           hit.max_assignments = (opts['assignments'] || 1).to_i
           hit.description = description
