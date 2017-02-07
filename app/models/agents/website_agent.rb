@@ -119,9 +119,9 @@ module Agents
 
     event_description do
       "Events will have the following fields:\n\n    %s" % [
-        Utils.pretty_print(Hash[options['extract'].keys.map { |key|
-          [key, "..."]
-        }])
+          Utils.pretty_print(Hash[options['extract'].keys.map { |key|
+            [key, "..."]
+          }])
       ]
     end
 
@@ -136,9 +136,9 @@ module Agents
           'type' => "html",
           'mode' => "on_change",
           'extract' => {
-            'url' => { 'css' => "#comic img", 'value' => "@src" },
-            'title' => { 'css' => "#comic img", 'value' => "@alt" },
-            'hovertext' => { 'css' => "#comic img", 'value' => "@title" }
+              'url' => { 'css' => "#comic img", 'value' => "@src" },
+              'title' => { 'css' => "#comic img", 'value' => "@alt" },
+              'hovertext' => { 'css' => "#comic img", 'value' => "@title" }
           }
       }
     end
@@ -168,87 +168,87 @@ module Agents
     def validate_extract_options!
       extraction_type = (extraction_type() rescue extraction_type(options))
       case extract = options['extract']
-      when Hash
-        if extract.each_value.any? { |value| !value.is_a?(Hash) }
-          errors.add(:base, 'extract must be a hash of hashes.')
-        else
-          case extraction_type
-          when 'html', 'xml'
-            extract.each do |name, details|
-              case details['css']
-              when String
-                # ok
-              when nil
-                case details['xpath']
-                when String
-                  # ok
-                when nil
-                  errors.add(:base, "When type is html or xml, all extractions must have a css or xpath attribute (bad extraction details for #{name.inspect})")
-                else
-                  errors.add(:base, "Wrong type of \"xpath\" value in extraction details for #{name.inspect}")
-                end
-              else
-                errors.add(:base, "Wrong type of \"css\" value in extraction details for #{name.inspect}")
-              end
-
-              case details['value']
-              when String, nil
-                # ok
-              else
-                errors.add(:base, "Wrong type of \"value\" value in extraction details for #{name.inspect}")
-              end
-            end
-          when 'json'
-            extract.each do |name, details|
-              case details['path']
-              when String
-                # ok
-              when nil
-                errors.add(:base, "When type is json, all extractions must have a path attribute (bad extraction details for #{name.inspect})")
-              else
-                errors.add(:base, "Wrong type of \"path\" value in extraction details for #{name.inspect}")
-              end
-            end
-          when 'text'
-            extract.each do |name, details|
-              case regexp = details['regexp']
-              when String
-                begin
-                  re = Regexp.new(regexp)
-                rescue => e
-                  errors.add(:base, "invalid regexp for #{name.inspect}: #{e.message}")
-                end
-              when nil
-                errors.add(:base, "When type is text, all extractions must have a regexp attribute (bad extraction details for #{name.inspect})")
-              else
-                errors.add(:base, "Wrong type of \"regexp\" value in extraction details for #{name.inspect}")
-              end
-
-              case index = details['index']
-              when Integer, /\A\d+\z/
-                # ok
-              when String
-                if re && !re.names.include?(index)
-                  errors.add(:base, "no named capture #{index.inspect} found in regexp for #{name.inspect})")
-                end
-              when nil
-                errors.add(:base, "When type is text, all extractions must have an index attribute (bad extraction details for #{name.inspect})")
-              else
-                errors.add(:base, "Wrong type of \"index\" value in extraction details for #{name.inspect}")
-              end
-            end
-          when /\{/
-            # Liquid templating
+        when Hash
+          if extract.each_value.any? { |value| !value.is_a?(Hash) }
+            errors.add(:base, 'extract must be a hash of hashes.')
           else
-            errors.add(:base, "Unknown extraction type #{extraction_type.inspect}")
+            case extraction_type
+              when 'html', 'xml'
+                extract.each do |name, details|
+                  case details['css']
+                    when String
+                      # ok
+                    when nil
+                      case details['xpath']
+                        when String
+                          # ok
+                        when nil
+                          errors.add(:base, "When type is html or xml, all extractions must have a css or xpath attribute (bad extraction details for #{name.inspect})")
+                        else
+                          errors.add(:base, "Wrong type of \"xpath\" value in extraction details for #{name.inspect}")
+                      end
+                    else
+                      errors.add(:base, "Wrong type of \"css\" value in extraction details for #{name.inspect}")
+                  end
+
+                  case details['value']
+                    when String, nil
+                      # ok
+                    else
+                      errors.add(:base, "Wrong type of \"value\" value in extraction details for #{name.inspect}")
+                  end
+                end
+              when 'json'
+                extract.each do |name, details|
+                  case details['path']
+                    when String
+                      # ok
+                    when nil
+                      errors.add(:base, "When type is json, all extractions must have a path attribute (bad extraction details for #{name.inspect})")
+                    else
+                      errors.add(:base, "Wrong type of \"path\" value in extraction details for #{name.inspect}")
+                  end
+                end
+              when 'text'
+                extract.each do |name, details|
+                  case regexp = details['regexp']
+                    when String
+                      begin
+                        re = Regexp.new(regexp)
+                      rescue => e
+                        errors.add(:base, "invalid regexp for #{name.inspect}: #{e.message}")
+                      end
+                    when nil
+                      errors.add(:base, "When type is text, all extractions must have a regexp attribute (bad extraction details for #{name.inspect})")
+                    else
+                      errors.add(:base, "Wrong type of \"regexp\" value in extraction details for #{name.inspect}")
+                  end
+
+                  case index = details['index']
+                    when Integer, /\A\d+\z/
+                      # ok
+                    when String
+                      if re && !re.names.include?(index)
+                        errors.add(:base, "no named capture #{index.inspect} found in regexp for #{name.inspect})")
+                      end
+                    when nil
+                      errors.add(:base, "When type is text, all extractions must have an index attribute (bad extraction details for #{name.inspect})")
+                    else
+                      errors.add(:base, "Wrong type of \"index\" value in extraction details for #{name.inspect}")
+                  end
+                end
+              when /\{/
+                # Liquid templating
+              else
+                errors.add(:base, "Unknown extraction type #{extraction_type.inspect}")
+            end
           end
-        end
-      when nil
-        unless extraction_type == 'json'
-          errors.add(:base, 'extract is required for all types except json')
-        end
-      else
-        errors.add(:base, 'extract must be a hash')
+        when nil
+          unless extraction_type == 'json'
+            errors.add(:base, 'extract is required for all types except json')
+          end
+        else
+          errors.add(:base, 'extract must be a hash')
       end
     end
 
@@ -294,14 +294,14 @@ module Agents
       end
 
       output =
-        case extraction_type
-          when 'json'
-            extract_json(doc)
-          when 'text'
-            extract_text(doc)
-          else
-            extract_xml(doc)
-        end
+          case extraction_type
+            when 'json'
+              extract_json(doc)
+            when 'text'
+              extract_text(doc)
+            else
+              extract_xml(doc)
+          end
 
       num_unique_lengths = interpolated['extract'].keys.map { |name| output[name].length }.uniq
 
@@ -340,11 +340,11 @@ module Agents
             end
           else
             url_to_scrape =
-              if url_template = options['url_from_event'].presence
-                interpolate_options(url_template)
-              else
-                event.payload['url']
-              end
+                if url_template = options['url_from_event'].presence
+                  interpolate_options(url_template)
+                else
+                  event.payload['url']
+                end
             check_urls(url_to_scrape, existing_payload)
           end
         end
@@ -364,18 +364,18 @@ module Agents
     # event to expire further in the future.
     def store_payload!(old_events, result)
       case interpolated['mode'].presence
-      when 'on_change'
-        result_json = result.to_json
-        if found = old_events.find { |event| event.payload.to_json == result_json }
-          found.update!(expires_at: new_event_expiration_date)
-          false
-        else
+        when 'on_change'
+          result_json = result.to_json
+          if found = old_events.find { |event| event.payload.to_json == result_json }
+            found.update!(expires_at: new_event_expiration_date)
+            false
+          else
+            true
+          end
+        when 'all', 'merge', ''
           true
-        end
-      when 'all', 'merge', ''
-        true
-      else
-        raise "Illegal options[mode]: #{interpolated['mode']}"
+        else
+          raise "Illegal options[mode]: #{interpolated['mode']}"
       end
     end
 
@@ -399,14 +399,14 @@ module Agents
     def extraction_type(interpolated = interpolated())
       (interpolated['type'] || begin
         case interpolated['url']
-        when /\.(rss|xml)$/i
-          "xml"
-        when /\.json$/i
-          "json"
-        when /\.(txt|text)$/i
-          "text"
-        else
-          "html"
+          when /\.(rss|xml)$/i
+            "xml"
+          when /\.json$/i
+            "json"
+          when /\.(txt|text)$/i
+            "text"
+          else
+            "html"
         end
       end).to_s
     end
@@ -439,8 +439,8 @@ module Agents
       extract_each { |extraction_details|
         regexp = Regexp.new(extraction_details['regexp'])
         case index = extraction_details['index']
-        when /\A\d+\z/
-          index = index.to_i
+          when /\A\d+\z/
+            index = index.to_i
         end
         result = []
         doc.scan(regexp) {
@@ -454,33 +454,33 @@ module Agents
     def extract_xml(doc)
       extract_each { |extraction_details|
         case
-        when css = extraction_details['css']
-          nodes = doc.css(css)
-        when xpath = extraction_details['xpath']
-          nodes = doc.xpath(xpath)
-        else
-          raise '"css" or "xpath" is required for HTML or XML extraction'
+          when css = extraction_details['css']
+            nodes = doc.css(css)
+          when xpath = extraction_details['xpath']
+            nodes = doc.xpath(xpath)
+          else
+            raise '"css" or "xpath" is required for HTML or XML extraction'
         end
         case nodes
-        when Nokogiri::XML::NodeSet
-          result = nodes.map { |node|
-            value = node.xpath(extraction_details['value'] || '.')
-            if value.is_a?(Nokogiri::XML::NodeSet)
-              child = value.first
-              if child && child.cdata?
-                value = child.text
+          when Nokogiri::XML::NodeSet
+            result = nodes.map { |node|
+              value = node.xpath(extraction_details['value'] || '.')
+              if value.is_a?(Nokogiri::XML::NodeSet)
+                child = value.first
+                if child && child.cdata?
+                  value = child.text
+                end
               end
-            end
-            case value
-            when Float
-              # Node#xpath() returns any numeric value as float;
-              # convert it to integer as appropriate.
-              value = value.to_i if value.to_i == value
-            end
-            value.to_s
-          }
-        else
-          raise "The result of HTML/XML extraction was not a NodeSet"
+              case value
+                when Float
+                  # Node#xpath() returns any numeric value as float;
+                  # convert it to integer as appropriate.
+                  value = value.to_i if value.to_i == value
+              end
+              value.to_s
+            }
+          else
+            raise "The result of HTML/XML extraction was not a NodeSet"
         end
         log "Extracting #{extraction_type} at #{xpath || css}: #{result}"
         result
@@ -489,19 +489,19 @@ module Agents
 
     def parse(data)
       case type = extraction_type
-      when "xml"
-        doc = Nokogiri::XML(data)
-        # ignore xmlns, useful when parsing atom feeds
-        doc.remove_namespaces! unless use_namespaces?
-        doc
-      when "json"
-        JSON.parse(data)
-      when "html"
-        Nokogiri::HTML(data)
-      when "text"
-        data
-      else
-        raise "Unknown extraction type: #{type}"
+        when "xml"
+          doc = Nokogiri::XML(data)
+          # ignore xmlns, useful when parsing atom feeds
+          doc.remove_namespaces! unless use_namespaces?
+          doc
+        when "json"
+          JSON.parse(data)
+        when "html"
+          Nokogiri::HTML(data)
+        when "text"
+          data
+        else
+          raise "Unknown extraction type: #{type}"
       end
     end
 
