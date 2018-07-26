@@ -2,7 +2,7 @@ require 'nokogiri'
 require 'date'
 
 module Agents
-  class WebsiteAgent < Agent
+  class PsWebsiteAgent < Agent
     include WebRequestConcern
 
     can_dry_run!
@@ -264,9 +264,11 @@ module Agents
         error "Ignoring a non-HTTP url: #{url.inspect}"
         return
       end
+
       uri = Utils.normalize_uri(url)
       log "Fetching #{uri}"
       response = faraday.get(uri)
+
       raise "Failed: #{response.inspect}" unless response.success?
 
       interpolation_context.stack {
@@ -299,6 +301,8 @@ module Agents
         end
 
         old_events = previous_payloads num_unique_lengths.first
+
+=begin
         num_unique_lengths.first.times do |index|
           result = {}
           interpolated['extract'].keys.each do |name|
@@ -313,6 +317,8 @@ module Agents
             create_event payload: payload.merge(result)
           end
         end
+=end
+        create_event payload: payload.merge(output)
       }
     rescue => e
       error "Error when fetching url: #{e.message}\n#{e.backtrace.join("\n")}"
